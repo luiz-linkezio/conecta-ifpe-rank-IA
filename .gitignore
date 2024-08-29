@@ -9,8 +9,8 @@
 !requirements.txt
 
 !data
-#!data/cleaned_datas
-#!data/cleaned_datas/cleaned_data.xlsx
+!data/cleaned_datas
+!data/cleaned_datas/cleaned_data.xlsx
 !data/Cópia de 2019_1.Bolsa_permanencia.xlsx
 !data/Cópia de 2021_1.Bolsa_permanencia.xlsx
 !data/Cópia de 2021_2.Bolsa_permanencia.xlsx
