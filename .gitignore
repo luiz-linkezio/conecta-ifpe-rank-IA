@@ -11,10 +11,16 @@
 !data
 !data/cleaned_datas
 !data/cleaned_datas/cleaned_data.xlsx
-!data/Cópia de 2019_1.Bolsa_permanencia.xlsx
-!data/Cópia de 2021_1.Bolsa_permanencia.xlsx
-!data/Cópia de 2021_2.Bolsa_permanencia.xlsx
-!data/Cópia de 2022_1.Bolsa_permanencia.xlsx
+!data/IFPE_01.xlsx
+!data/IFPE_02.xlsx
+!data/IFPE_03.xlsx
+!data/IFPE_04.xlsx
+!data/IFPE_05.xlsx
+!data/IFPE_06.xlsx
+!data/IFPE_07.xlsx
+!data/IFPE_08.xlsx
+!data/IFPE_09.xlsx
+!data/IFPE_10.xlsx
 
 !notebooks
 !notebooks/data_preprocessing.ipynb
