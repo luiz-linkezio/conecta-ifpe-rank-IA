@@ -24,3 +24,4 @@
 
 !notebooks
 !notebooks/data_preprocessing.ipynb
+!notebooks/train_test_model.ipynb
