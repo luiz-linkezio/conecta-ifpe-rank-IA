@@ -32,7 +32,7 @@ if "Condiçõees de moradia familiar" in df:
 columns_order = df.columns.tolist()
 
 # Lendo o arquivo txt e criando uma lista com as colunas necessárias para o dataframe ser passado no modelo
-with open('./src/utils/model_71_columns.txt', 'r', encoding='ISO-8859-1') as file:
+with open('./src/utils/model_72_columns.txt', 'r', encoding='ISO-8859-1') as file:
     necessary_columns = file.read().splitlines()
 
 # Transforma data de nascimento em idade
