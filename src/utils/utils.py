@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+from utils.constants import columns_white_list
 
 def remove_initial_and_ending_spaces(name):
     regex = r'^(?:\s+)?(?P<gp>.+?)(?:\s+)?$'
@@ -59,3 +60,26 @@ def revert_one_hot(df_encoded, one_hot_columns):
             df_reverted.drop(columns=one_hot_cols, inplace=True)
     
     return df_reverted
+
+def filling_missing_columns(df, necessary_columns):
+    missing_columns = [col for col in necessary_columns if col not in df.columns]
+
+    # Adiciona as colunas faltantes com valor False
+    for col in missing_columns:
+        df[col] = False
+
+    return df
+
+def reorder_columns(df, sorted_columns, test_flag=False):
+    common_columns = [col for col in sorted_columns if col in df.columns]
+    extra_columns = [col for col in df.columns if col not in common_columns]
+
+    new_column_order = common_columns + extra_columns
+
+    df = df[new_column_order]
+
+    if test_flag == True:
+        df = df.drop(columns=["Aluno contemplado com bolsa?"])
+
+    return df
+

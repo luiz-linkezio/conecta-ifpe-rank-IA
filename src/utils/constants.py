@@ -1,5 +1,4 @@
 columns_white_list = [
-    'Auxílio digital',
     'Data de nascimento', 
     'Raça', 
     'Sexo', 
@@ -12,8 +11,7 @@ columns_white_list = [
     'Moradia estudantil', 
     'Em seu endereço atual, como você mora?',
     'Condições de moradia familiar', 
-    'Região da moradia',
-    'Abastecimento de água', 
+    'Região da moradia', 
     'Material de construção da moradia',
     'Saneamento', 
     'Mudou de endereço para estudar no IFPE',
@@ -29,9 +27,8 @@ columns_white_list = [
     'Como você acessou à educação básica (Ensino Fundamental)',
     'Como você acessa/acessou à educação básica (Ensino Médio)',
     'Documentação correta?',
-    'Aluno contemplado com bolsa?',
     'Relato de vida'
-]
+    ]
 
 columns_to_float64 = [
     'Renda bruta familiar', 
@@ -40,7 +37,6 @@ columns_to_float64 = [
     ]
 
 one_hot_encoding_columns = [  #Provavelmente terei que parar de usar essas colunas
-    'Auxílio digital', 
     'Raça', 
     'Sexo', 
     'Orientação Sexual',
@@ -49,7 +45,6 @@ one_hot_encoding_columns = [  #Provavelmente terei que parar de usar essas colun
     'Em seu endereço atual, como você mora?', 
     'Condições de moradia familiar', 
     'Região da moradia', 
-    'Abastecimento de água', 
     'Material de construção da moradia', 
     'Saneamento', 
     'Como você acessa os serviços de saúde', 
