@@ -9,6 +9,7 @@
 !requirements.txt
 
 !src
+!src/main.py
 !src/utils
 !src/utils/utils.py
 !src/utils/constants.py
