@@ -8,6 +8,11 @@
 
 !requirements.txt
 
+!src
+!src/utils
+!src/utils/utils.py
+!src/utils/constants.py
+
 !data
 !data/cleaned_datas
 !data/cleaned_datas/cleaned_data.xlsx
