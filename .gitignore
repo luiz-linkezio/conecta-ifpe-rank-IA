@@ -13,6 +13,7 @@
 !src/utils
 !src/utils/utils.py
 !src/utils/constants.py
+!src/utils/model_71_columns.txt
 
 !data
 !data/cleaned_datas
