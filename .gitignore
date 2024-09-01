@@ -11,6 +11,9 @@
 !data
 !data/cleaned_datas
 !data/cleaned_datas/cleaned_data.xlsx
+!data/cleaned_datas/cleaned_data_documentacao_correta.xlsx
+!data/cleaned_datas/cleaned_IFPE_10.xlsx
+!data/cleaned_datas/sorted_cleaned_data.xlsx
 !data/IFPE_01.xlsx
 !data/IFPE_02.xlsx
 !data/IFPE_03.xlsx
