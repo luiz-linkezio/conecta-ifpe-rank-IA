@@ -5,7 +5,7 @@ from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_li
 from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
 from utils.reading import read_txt_latin1
-from utils.ai_process import ai_process
+from utils.ai_processes import ai_process_GBM
 from datetime import datetime
 import warnings
 
@@ -138,7 +138,8 @@ def main():
 
     df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no formato de entrada do modelo
 
-    df, y_pred_proba = ai_process(df, model, scaler) # Normaliza os dados e realiza a predição usando o modelo
+    df, y_pred_proba, _ = ai_process_GBM(df, model, scaler) # Normaliza os dados e realiza a predição usando o modelo
+    del _
 
     df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name) # Transforma o dataframe quase no formato original dele, com pouca mudança
 

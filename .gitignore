@@ -16,7 +16,7 @@
 !src/utils/model_71_columns.txt
 !src/utils/paths.py
 !src/utils/reading.py
-!src/utils/ai_process.py
+!src/utils/ai_processes.py
 
 !data
 !data/cleaned_data
