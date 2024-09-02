@@ -5,6 +5,7 @@ from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_li
 from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
 from utils.reading import read_txt_latin1
+from utils.ai_process import ai_process
 from datetime import datetime
 import warnings
 
@@ -24,7 +25,7 @@ def load_data_and_models():
     return df, model, scaler, one_hoted_columns_list, file_name
 
 
-# Função responsável por tratar os dados antes da predição do modelo
+# Função responsável por tratar os dados antes da predição do modelo, fazendo com que o dataframe fique no formato de entrada do modelo
 def preprocess_dataframe(df, one_hoted_columns_list):
     global resultado_flag
 
@@ -41,7 +42,7 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     if "Condiçõees de moradia familiar" in df:
         df.rename(columns={"Condiçõees de moradia familiar": "Condições de moradia familiar"}, inplace=True)
 
-    # Armazenando a ordem do dataframe antes dos próximos preprocessamentos
+    # Armazenando a ordem do dataframe antes dos próximos pré-processamentos
     columns_order = df.columns.tolist()
 
     # Transforma data de nascimento em idade
@@ -69,7 +70,7 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     # Remove linhas com valores inválidos no dataframe
     df = drop_common_rows_from_left_df(df, invalid_rows)
 
-    # One-hot encoding
+    # One-hot encoding em determinadas colunas
     df = pd.get_dummies(df, columns=one_hot_encoding_columns, drop_first=False)
 
     # Preenchendo possíveis colunas faltantes (especialmente as de one-hot encoding que dependem da entrada para existir)
@@ -87,14 +88,8 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     return df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado
 
 
-# Função responsável por normalizar os dados, fazer a predição do modelo e fazer tratamentos finais
-def postprocess_dataframe(df, model, scaler, invalid_rows, df_excluded_columns, columns_order, file_name):
-
-    # Normaliza os dados
-    X = scaler.transform(df)
-
-    # Modelo gera um score do quanto o aluno precisa da bolsa
-    y_pred_proba = model.predict_proba(X)
+# Transforma o dataframe quase no formato original dele, com pouca mudança
+def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, columns_order, file_name):
 
     # Adiciona uma nova coluna mostrando o nível de necessidade de bolsa de cada aluno
     df['Nível de necessidade'] = y_pred_proba[:, 1]
@@ -139,13 +134,15 @@ def validate_df(df, df_aluno_contemplado, file_name):
 
 def main():
     
-    df, model, scaler, one_hoted_columns_list, file_name = load_data_and_models()
+    df, model, scaler, one_hoted_columns_list, file_name = load_data_and_models() # Carrega os dados, modelo e informações adicionais que serão úteis
 
-    df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list)
+    df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no formato de entrada do modelo
 
-    df = postprocess_dataframe(df, model, scaler, invalid_rows, df_excluded_columns, columns_order, file_name)
+    df, y_pred_proba = ai_process(df, model, scaler) # Normaliza os dados e realiza a predição usando o modelo
 
-    validate_df(df, df_aluno_contemplado, file_name)
+    df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name) # Transforma o dataframe quase no formato original dele, com pouca mudança
+
+    validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
 
 if __name__ == "__main__":
     main()
