@@ -83,3 +83,9 @@ def reorder_columns(df, sorted_columns, test_flag=False):
 
     return df
 
+def convert_negative_numbers_to_zero(df):
+    numeric_df = df.select_dtypes(include=['number'])
+    numeric_df_clipped = numeric_df.clip(lower=0)
+    df[numeric_df_clipped.columns] = numeric_df_clipped
+
+    return df

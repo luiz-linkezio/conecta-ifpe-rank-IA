@@ -1,123 +1,151 @@
 import pandas as pd
+import os
 from joblib import load
-from utils.utils import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns
+from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_list_path
+from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
+from utils.reading import read_txt_latin1
 from datetime import datetime
 import warnings
 
+warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam ignoradas
 
 
-# Fazendo com que as saídas de alerta sejam ignoradas
-warnings.filterwarnings('ignore')
 
-# Carrega o arquivo a ser analisado, o modelo que irá analisar e o scaler de normalização
-df = pd.read_excel("./data/IFPE_10.xlsx")
-model = load('./models/GBM_71c_a0.8207941483803552.joblib')
-scaler = load('./models/scalers/std_scaler_GBM_71c_a0.8207941483803552.pkl')
+# Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
+def load_data_and_models(data_path, model_path, scaler_path, one_hoted_columns_list_path):
+    df = pd.read_excel(data_path)
+    model = load(model_path)
+    scaler = load(scaler_path)
+    one_hoted_columns_list = read_txt_latin1(one_hoted_columns_list_path)
 
-# Remove espaços em branco nos nomes das colunas
-for col in df.columns:
-    df = df.rename({col:remove_initial_and_ending_spaces(col)}, axis='columns')
+    file_name = os.path.basename(data_path)
 
-# Verifica se o df tem o resultado da escolha da bolsa (PURAMENTE PARA TESTES!!!)
-resultado_flag = False
-if "Aluno contemplado com bolsa?" in df.columns:
-    resultado_flag = True
+    return df, model, scaler, one_hoted_columns_list, file_name
 
-# Renomeia erro de português em uma das colunas
-if "Condiçõees de moradia familiar" in df:
-    df.rename(columns={"Condiçõees de moradia familiar": "Condições de moradia familiar"}, inplace=True)
 
-# Armazenando a ordem do dataframe antes dos próximos preprocessamentos
-columns_order = df.columns.tolist()
+# Função responsável por tratar os dados antes da predição do modelo
+def preprocess_dataframe(df, one_hoted_columns_list):
+    global resultado_flag
 
-# Lendo o arquivo txt e criando uma lista com as colunas necessárias para o dataframe ser passado no modelo
-with open('./src/utils/model_71_columns.txt', 'r', encoding='latin-1') as file:
-    necessary_columns = file.read().splitlines()
+    # Remove espaços em branco nos nomes das colunas
+    for col in df.columns:
+        df = df.rename({col:remove_initial_and_ending_spaces(col)}, axis='columns')
 
-# Transforma data de nascimento em idade
-df['Data de nascimento'] = (datetime.now() - df['Data de nascimento']).dt.days // 365
-df['Data de nascimento'] = df['Data de nascimento'].astype(float)
+    # Verifica se o df tem o resultado da escolha da bolsa (PURAMENTE PARA TESTES!!!)
+    resultado_flag = False #(PURAMENTE PARA TESTES!!!)
+    if "Aluno contemplado com bolsa?" in df.columns: #(PURAMENTE PARA TESTES!!!)
+        resultado_flag = True #(PURAMENTE PARA TESTES!!!)
 
-# Converte colunas que tem números em string para float
-df = convert_columns_to_float64(df, columns_to_float64)
+    # Renomeia erro de português em uma das colunas
+    if "Condiçõees de moradia familiar" in df:
+        df.rename(columns={"Condiçõees de moradia familiar": "Condições de moradia familiar"}, inplace=True)
 
-# Armazenando a coluna de aptidão, para testar o desempenho do sistema (DEVE SER REMOVIDO ANTES DE LANÇAR)
-df_aluno_contemplado = df["Aluno contemplado com bolsa?"].copy() # (DEVE SER REMOVIDO ANTES DE LANÇAR)
+    # Armazenando a ordem do dataframe antes dos próximos preprocessamentos
+    columns_order = df.columns.tolist()
 
-# Armazena as colunas que não estão na whitelist de colunas e filtra o df para passar apenas as colunas da whitelist, que serão utilizadas pelo modelo
-df_excluded_columns = df[df.columns.difference(columns_white_list)]
-df = df[columns_white_list]
+    # Transforma data de nascimento em idade
+    df['Data de nascimento'] = (datetime.now() - df['Data de nascimento']).dt.days // 365
+    df['Data de nascimento'] = df['Data de nascimento'].astype(float)
 
-# Remove a coluna Relato de Vida (TEMPORÁRIO)
-df = df.drop(columns=["Relato de vida"]) # (TEMPORÁRIO)
+    # Converte colunas que tem números em string para float
+    df = convert_columns_to_float64(df, columns_to_float64)
 
-# Armazena linhas com valores nulos e seus índices, une ela com as colunas faltantes das linhas correspondentes, e dropa estas mesmas linhas no dataframe de colunas excluídas
-rows_with_na = df[df.isna().any(axis=1)]
-rows_with_na = rows_with_na.join(df_excluded_columns, how='inner')
-df_excluded_columns = df_excluded_columns.drop(rows_with_na.index)
+    # Armazenando a coluna de aptidão, para testar o desempenho do sistema (DEVE SER REMOVIDO ANTES DE LANÇAR)
+    df_aluno_contemplado = df["Aluno contemplado com bolsa?"].copy() # (DEVE SER REMOVIDO ANTES DE LANÇAR)
 
-# Remove linhas com valores nulos no dataframe
-df = df.dropna(axis=0)
+    # Armazena as colunas que não estão na whitelist de colunas e filtra o df para passar apenas as colunas da whitelist, que serão utilizadas pelo modelo
+    df_excluded_columns = df[df.columns.difference(columns_white_list)]
+    df = df[columns_white_list]
 
-# One-hot encoding (provavelmente será removido)
-df = pd.get_dummies(df, columns=one_hot_encoding_columns, drop_first=False)
+    # Remove a coluna Relato de Vida (TEMPORÁRIO)
+    df = df.drop(columns=["Relato de vida"]) # (TEMPORÁRIO)
 
-# Preenchendo possíveis colunas faltantes (especialmente as de one-hot encoding que dependem da entrada para existir)
-df = filling_missing_columns(df, necessary_columns)
+    # Armazena linhas com valores nulos e seus índices, une ela com as colunas faltantes das linhas correspondentes, e dropa estas mesmas linhas no dataframe de colunas excluídas
+    rows_with_na = df[df.isna().any(axis=1)]
+    rows_with_na = rows_with_na.join(df_excluded_columns, how='inner')
+    df_excluded_columns = df_excluded_columns.drop(rows_with_na.index)
 
-# Ordena os index baseados nas colunas
-df.sort_index(axis=1, inplace=True)
+    # Remove linhas com valores nulos no dataframe
+    df = df.dropna(axis=0)
 
-# Troca valores 'Sim' para True e 'Não' para False, para ser passado no modelo
-df.replace({'Sim': True, 'Não': False}, inplace=True)
+    # One-hot encoding
+    df = pd.get_dummies(df, columns=one_hot_encoding_columns, drop_first=False)
 
-# Transforma valores negativos em 0
-numeric_df = df.select_dtypes(include=['number'])
-numeric_df_clipped = numeric_df.clip(lower=0)
-df[numeric_df_clipped.columns] = numeric_df_clipped
+    # Preenchendo possíveis colunas faltantes (especialmente as de one-hot encoding que dependem da entrada para existir)
+    df = filling_missing_columns(df, one_hoted_columns_list)
 
-# Normaliza os dados
-X = scaler.transform(df)
+    # Ordena os index baseados nas colunas
+    df.sort_index(axis=1, inplace=True)
 
-# Modelo gera um score do quanto o aluno precisa da bolsa
-y_pred_proba = model.predict_proba(X)
+    # Troca valores 'Sim' para True e 'Não' para False, para ser passado no modelo
+    df.replace({'Sim': True, 'Não': False}, inplace=True)
 
-# Adiciona uma nova coluna mostrando o nível de necessidade de bolsa de cada aluno
-df['Nível de necessidade'] = y_pred_proba[:, 1]
+    # Transforma valores negativos do dataframe em 0
+    df = convert_negative_numbers_to_zero(df)
 
-# Ordena a coluna a partir do nível de necessidade
-df = df.sort_values(by='Nível de necessidade', ascending=False)
+    return df, rows_with_na, df_excluded_columns, columns_order, df_aluno_contemplado
 
-# Reverte as características que sofreram one-hot encoding
-df = revert_one_hot(df, one_hot_encoding_columns)
 
-# Ordena os index baseados nas colunas
-df.sort_index(axis=1, inplace=True)
+# Função responsável por normalizar os dados, fazer a predição do modelo e fazer tratamentos finais
+def postprocess_dataframe(df, model, scaler, rows_with_na, df_excluded_columns, columns_order, file_name):
 
-# Concatena o dataframe com as colunas que foram removidas anteriormente
-df = pd.concat([df, df_excluded_columns], axis=1)
+    # Normaliza os dados
+    X = scaler.transform(df)
 
-# Concatena o dataframe com as linhas que foram removidas anteriormente
-df = pd.concat([df, rows_with_na])
+    # Modelo gera um score do quanto o aluno precisa da bolsa
+    y_pred_proba = model.predict_proba(X)
 
-# Reordenar colunas para ficar parecido com a entrada
-df = reorder_columns(df, columns_order, resultado_flag) # DEVE SER COLOCADO FALSE ANTES DO LANÇAMENTO!!!!
+    # Adiciona uma nova coluna mostrando o nível de necessidade de bolsa de cada aluno
+    df['Nível de necessidade'] = y_pred_proba[:, 1]
 
-# dataframe com uma coluna extra de aptidão, para verificar o desempenho do sistema (DEVE SER REMOVIDO ANTES DE LANÇAR)
-df_validation = pd.concat([df, df_aluno_contemplado], axis=1) # (DEVE SER REMOVIDO ANTES DE LANÇAR)
+    # Ordena a coluna a partir do nível de necessidade
+    df = df.sort_values(by='Nível de necessidade', ascending=False)
 
-# Renomeia de volta os valores que eram 'Sim' e 'Não'
-df.replace({True: 'Sim', False: 'Não'}, inplace=True)
+    # Reverte as características que sofreram one-hot encoding
+    df = revert_one_hot(df, one_hot_encoding_columns)
 
-# Renomeia de volta os valores que eram 'Sim' e 'Não'
-df_validation.replace({True: 'Sim', False: 'Não'}, inplace=True)
+    # Ordena os index baseados nas colunas
+    df.sort_index(axis=1, inplace=True)
 
-# Renomeando a coluna "Data de nascimento" para "Idade"
-df = df.rename(columns={'Data de nascimento': 'Idade'})
+    # Concatena o dataframe com as colunas que foram removidas anteriormente
+    df = pd.concat([df, df_excluded_columns], axis=1)
 
-# Salva a planilha reordenada
-df.to_excel('./data/cleaned_datas/cleaned_IFPE_10.xlsx', index=False)
+    # Concatena o dataframe com as linhas que foram removidas anteriormente
+    df = pd.concat([df, rows_with_na])
 
-# Salva a planilha reordenada
-df_validation.to_excel('./data/cleaned_datas/cleaned_IFPE_10_validation.xlsx', index=False)
+    # Reordenar colunas para ficar parecido com a entrada
+    df = reorder_columns(df, columns_order, resultado_flag) # DEVE SER COLOCADO FALSE ANTES DO LANÇAMENTO!!!
+
+    # Renomeia de volta os valores que eram 'Sim' e 'Não'
+    df.replace({True: 'Sim', False: 'Não'}, inplace=True)
+
+    # Renomeando a coluna "Data de nascimento" para "Idade"
+    df = df.rename(columns={'Data de nascimento': 'Idade'})
+
+    # Salva a planilha reordenada
+    df.to_excel(f'./data/cleaned_data/cleaned_{file_name}', index=False)
+
+    return df
+
+
+def validate_df(df, df_aluno_contemplado, file_name):
+    # dataframe com uma coluna extra de aptidão, para verificar o desempenho do sistema (DEVE SER REMOVIDO ANTES DE LANÇAR)
+    df_validation = pd.concat([df, df_aluno_contemplado], axis=1) # (DEVE SER REMOVIDO ANTES DE LANÇAR)
+
+    # Salva a planilha reordenada
+    df_validation.to_excel(f'./data/cleaned_data/validation_cleaned_{file_name}', index=False)
+
+
+def main():
+    
+    df, model, scaler, one_hoted_columns_list, file_name = load_data_and_models(data_path, model_path, scaler_path, one_hoted_columns_list_path)
+
+    df, rows_with_na, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list)
+
+    df = postprocess_dataframe(df, model, scaler, rows_with_na, df_excluded_columns, columns_order, file_name)
+
+    validate_df(df, df_aluno_contemplado, file_name)
+
+if __name__ == "__main__":
+    main()
