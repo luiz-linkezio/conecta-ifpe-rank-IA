@@ -61,7 +61,7 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     # Remove a coluna Relato de Vida (TEMPORÁRIO)
     df = df.drop(columns=["Relato de vida"]) # (TEMPORÁRIO)
 
-    # Armazena linhas com valores nulos e seus índices, une ela com as colunas faltantes das linhas correspondentes, e dropa estas mesmas linhas no dataframe de colunas excluídas
+    # Armazena linhas com valores inválidos e seus índices, une ela com as colunas faltantes das linhas correspondentes, e dropa estas mesmas linhas no dataframe de colunas excluídas
     invalid_rows = get_invalid_rows(df)
     invalid_rows = invalid_rows.join(df_excluded_columns, how='inner')
     df_excluded_columns = df_excluded_columns.drop(invalid_rows.index)

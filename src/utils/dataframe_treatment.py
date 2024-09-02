@@ -1,6 +1,5 @@
 import re
 import pandas as pd
-from utils.constants import columns_white_list
 
 def remove_initial_and_ending_spaces(name):
     regex = r'^(?:\s+)?(?P<gp>.+?)(?:\s+)?$'
@@ -17,7 +16,7 @@ def convert_columns_to_float64(df, columns_to_float64):
             df[column] = pd.to_numeric(df[column], errors='coerce').astype('float64')
     except:
         pass
-    
+
     return df
 
 def find_missing_columns(dfs):
