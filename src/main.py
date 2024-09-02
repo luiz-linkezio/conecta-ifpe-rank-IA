@@ -12,8 +12,8 @@ warnings.filterwarnings('ignore')
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar e o scaler de normalização
 df = pd.read_excel("./data/IFPE_10.xlsx")
-model = load('./models/GBM_80c_a87.joblib')
-scaler = load('./models/scalers/std_scaler_GBM_80c_a87.pkl')
+model = load('./models/GBM_71c_a0.8207941483803552.joblib')
+scaler = load('./models/scalers/std_scaler_GBM_71c_a0.8207941483803552.pkl')
 
 # Remove espaços em branco nos nomes das colunas
 for col in df.columns:
@@ -32,7 +32,7 @@ if "Condiçõees de moradia familiar" in df:
 columns_order = df.columns.tolist()
 
 # Lendo o arquivo txt e criando uma lista com as colunas necessárias para o dataframe ser passado no modelo
-with open('./src/utils/model_72_columns.txt', 'r', encoding='ISO-8859-1') as file:
+with open('./src/utils/model_71_columns.txt', 'r', encoding='latin-1') as file:
     necessary_columns = file.read().splitlines()
 
 # Transforma data de nascimento em idade

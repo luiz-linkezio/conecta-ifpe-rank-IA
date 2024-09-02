@@ -26,7 +26,6 @@ columns_white_list = [
     'Como você acessa os serviços de saúde',
     'Como você acessou à educação básica (Ensino Fundamental)',
     'Como você acessa/acessou à educação básica (Ensino Médio)',
-    'Documentação correta?',
     'Relato de vida'
     ]
 
