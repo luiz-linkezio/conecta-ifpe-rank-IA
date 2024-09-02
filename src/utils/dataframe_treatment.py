@@ -12,8 +12,12 @@ def remove_initial_and_ending_spaces(name):
       return name
   
 def convert_columns_to_float64(df, columns_to_float64):
-    for column in columns_to_float64:
-        df[column] = pd.to_numeric(df[column], errors='coerce').astype('float64')
+    try:
+        for column in columns_to_float64:
+            df[column] = pd.to_numeric(df[column], errors='coerce').astype('float64')
+    except:
+        pass
+    
     return df
 
 def find_missing_columns(dfs):
@@ -89,3 +93,35 @@ def convert_negative_numbers_to_zero(df):
     df[numeric_df_clipped.columns] = numeric_df_clipped
 
     return df
+
+def get_invalid_rows(df):
+
+    numeric_columns = df.select_dtypes(include=['number']).columns
+    non_numeric_columns = df.select_dtypes(exclude=['number']).columns
+
+    # 1. Linhas com valores NaN em qualquer coluna
+    invalid_rows = df[df.isna().any(axis=1)]
+
+    # 2. Linhas com valores numéricos em colunas não numéricas
+    for col in non_numeric_columns:
+        numeric_in_non_numeric = df[pd.to_numeric(df[col], errors='coerce').notna()]
+        invalid_rows = pd.concat([invalid_rows, numeric_in_non_numeric])
+
+    # 3. Linhas com valores não numéricos em colunas numéricas
+    for col in numeric_columns:
+        non_numeric_in_numeric = df[~pd.to_numeric(df[col], errors='coerce').notna()]
+        invalid_rows = pd.concat([invalid_rows, non_numeric_in_numeric])
+
+    # Remove duplicatas
+    invalid_rows = invalid_rows.drop_duplicates()
+
+    return invalid_rows
+
+def drop_common_rows_from_left_df(df_1, df_2):
+    # Faz a junção dos dois dataframes, marcando a origem das linhas com o parâmetro 'indicator'
+    condition = ~df_1.isin(df_2.to_dict(orient='list')).all(axis=1)
+    
+    # Filtra as linhas de A que não estão em B
+    df_1_filtered = df_1[condition]
+
+    return df_1_filtered

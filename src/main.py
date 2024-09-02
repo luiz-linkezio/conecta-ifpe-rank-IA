@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from joblib import load
 from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_list_path
-from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero
+from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
 from utils.reading import read_txt_latin1
 from datetime import datetime
@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam i
 
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
-def load_data_and_models(data_path, model_path, scaler_path, one_hoted_columns_list_path):
+def load_data_and_models():
     df = pd.read_excel(data_path)
     model = load(model_path)
     scaler = load(scaler_path)
@@ -62,12 +62,12 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     df = df.drop(columns=["Relato de vida"]) # (TEMPORÁRIO)
 
     # Armazena linhas com valores nulos e seus índices, une ela com as colunas faltantes das linhas correspondentes, e dropa estas mesmas linhas no dataframe de colunas excluídas
-    rows_with_na = df[df.isna().any(axis=1)]
-    rows_with_na = rows_with_na.join(df_excluded_columns, how='inner')
-    df_excluded_columns = df_excluded_columns.drop(rows_with_na.index)
+    invalid_rows = get_invalid_rows(df)
+    invalid_rows = invalid_rows.join(df_excluded_columns, how='inner')
+    df_excluded_columns = df_excluded_columns.drop(invalid_rows.index)
 
-    # Remove linhas com valores nulos no dataframe
-    df = df.dropna(axis=0)
+    # Remove linhas com valores inválidos no dataframe
+    df = drop_common_rows_from_left_df(df, invalid_rows)
 
     # One-hot encoding
     df = pd.get_dummies(df, columns=one_hot_encoding_columns, drop_first=False)
@@ -84,11 +84,11 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     # Transforma valores negativos do dataframe em 0
     df = convert_negative_numbers_to_zero(df)
 
-    return df, rows_with_na, df_excluded_columns, columns_order, df_aluno_contemplado
+    return df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado
 
 
 # Função responsável por normalizar os dados, fazer a predição do modelo e fazer tratamentos finais
-def postprocess_dataframe(df, model, scaler, rows_with_na, df_excluded_columns, columns_order, file_name):
+def postprocess_dataframe(df, model, scaler, invalid_rows, df_excluded_columns, columns_order, file_name):
 
     # Normaliza os dados
     X = scaler.transform(df)
@@ -112,7 +112,7 @@ def postprocess_dataframe(df, model, scaler, rows_with_na, df_excluded_columns, 
     df = pd.concat([df, df_excluded_columns], axis=1)
 
     # Concatena o dataframe com as linhas que foram removidas anteriormente
-    df = pd.concat([df, rows_with_na])
+    df = pd.concat([df, invalid_rows])
 
     # Reordenar colunas para ficar parecido com a entrada
     df = reorder_columns(df, columns_order, resultado_flag) # DEVE SER COLOCADO FALSE ANTES DO LANÇAMENTO!!!
@@ -139,11 +139,11 @@ def validate_df(df, df_aluno_contemplado, file_name):
 
 def main():
     
-    df, model, scaler, one_hoted_columns_list, file_name = load_data_and_models(data_path, model_path, scaler_path, one_hoted_columns_list_path)
+    df, model, scaler, one_hoted_columns_list, file_name = load_data_and_models()
 
-    df, rows_with_na, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list)
+    df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list)
 
-    df = postprocess_dataframe(df, model, scaler, rows_with_na, df_excluded_columns, columns_order, file_name)
+    df = postprocess_dataframe(df, model, scaler, invalid_rows, df_excluded_columns, columns_order, file_name)
 
     validate_df(df, df_aluno_contemplado, file_name)
 
