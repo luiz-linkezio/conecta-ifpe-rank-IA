@@ -1,11 +1,12 @@
 import pandas as pd
 import os
 from joblib import load
-from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_list_path
+import spacy
+from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
 from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
 from utils.reading import read_txt_latin1
-from utils.ai_processes import ai_process_GBM
+from utils.ai_processes import ai_process_GBM, ai_process_spacy
 from datetime import datetime
 import warnings
 
@@ -17,12 +18,14 @@ warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam i
 def load_data_and_models():
     df = pd.read_excel(data_path)
     model = load(model_path)
+    nlp = spacy.load("pt_core_news_lg")
+    model_text = load(model_text_path)
     scaler = load(scaler_path)
     one_hoted_columns_list = read_txt_latin1(one_hoted_columns_list_path)
 
     file_name = os.path.basename(data_path)
 
-    return df, model, scaler, one_hoted_columns_list, file_name
+    return df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name
 
 
 # Função responsável por tratar os dados antes da predição do modelo, fazendo com que o dataframe fique no formato de entrada do modelo
@@ -59,13 +62,14 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     df_excluded_columns = df[df.columns.difference(columns_white_list)]
     df = df[columns_white_list]
 
-    # Remove a coluna Relato de Vida (TEMPORÁRIO)
-    df = df.drop(columns=["Relato de vida"]) # (TEMPORÁRIO)
+    # Armazena a coluna do "Relato de vida" e remove esta coluna do dataframe de origem
+    df_text_column = df["Relato de vida"]
+    df.drop(columns=["Relato de vida"], inplace=True)
 
     # Armazena linhas com valores inválidos e seus índices, une ela com as colunas faltantes das linhas correspondentes, e dropa estas mesmas linhas no dataframe de colunas excluídas
     invalid_rows = get_invalid_rows(df)
     invalid_rows = invalid_rows.join(df_excluded_columns, how='inner')
-    df_excluded_columns = df_excluded_columns.drop(invalid_rows.index)
+    df_excluded_columns.drop(invalid_rows.index, inplace=True)
 
     # Remove linhas com valores inválidos no dataframe
     df = drop_common_rows_from_left_df(df, invalid_rows)
@@ -85,11 +89,19 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     # Transforma valores negativos do dataframe em 0
     df = convert_negative_numbers_to_zero(df)
 
-    return df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado
+    return df, df_text_column, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado
+
+
+# 
+def midprocess_dataframe(df, text_scores):
+    
+    df["Relato de vida"] = text_scores
+
+    return df 
 
 
 # Transforma o dataframe quase no formato original dele, com pouca mudança
-def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, columns_order, file_name):
+def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column):
 
     # Adiciona uma nova coluna mostrando o nível de necessidade de bolsa de cada aluno
     df['Nível de necessidade'] = y_pred_proba[:, 1]
@@ -108,6 +120,12 @@ def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, co
 
     # Concatena o dataframe com as linhas que foram removidas anteriormente
     df = pd.concat([df, invalid_rows])
+
+    # Dropa a coluna com os scores dos relatos de vida
+    df.drop(columns=["Relato de vida"], inplace=True)
+
+    # Concatena o dataframe com os textos de relato de vida originais
+    df = pd.concat([df, df_text_column], axis=1)
 
     # Reordenar colunas para ficar parecido com a entrada
     df = reorder_columns(df, columns_order, resultado_flag) # DEVE SER COLOCADO FALSE ANTES DO LANÇAMENTO!!!
@@ -134,14 +152,18 @@ def validate_df(df, df_aluno_contemplado, file_name):
 
 def main():
     
-    df, model, scaler, one_hoted_columns_list, file_name = load_data_and_models() # Carrega os dados, modelo e informações adicionais que serão úteis
+    df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name = load_data_and_models() # Carrega os dados, modelo e informações adicionais que serão úteis
 
-    df, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no formato de entrada do modelo
+    df, df_text_column, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no quase no formato de entrada do modelo
+
+    text_scores = ai_process_spacy(df_text_column[:len(df)], nlp, model_text) # Transforma a colune de textos em scores para servir de entrada para o modelo
+    
+    df = midprocess_dataframe(df, text_scores) # Preparações finais para o dataframe estar no formato de entrada do modelo 
 
     df, y_pred_proba, _ = ai_process_GBM(df, model, scaler) # Normaliza os dados e realiza a predição usando o modelo
     del _
 
-    df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name) # Transforma o dataframe quase no formato original dele, com pouca mudança
+    df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column) # Transforma o dataframe quase no formato original dele, com pouca mudança
 
     validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
 

@@ -1,8 +1,5 @@
 columns_white_list = [
-    'Data de nascimento', 
-    'Raça', 
-    'Sexo', 
-    'Orientação Sexual',
+    'Data de nascimento',
     'Turno', 
     'Período', 
     'Quantidade de disciplinas no período',
@@ -36,9 +33,6 @@ columns_to_float64 = [
     ]
 
 one_hot_encoding_columns = [  #Provavelmente terei que parar de usar essas colunas
-    'Raça', 
-    'Sexo', 
-    'Orientação Sexual',
     'Turno', 
     'Origem escolar', 
     'Em seu endereço atual, como você mora?', 
