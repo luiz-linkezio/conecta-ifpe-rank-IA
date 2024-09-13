@@ -92,7 +92,7 @@ def preprocess_dataframe(df, one_hoted_columns_list):
     return df, df_text_column, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado
 
 
-# 
+# Recria a coluna de relatos de vida, porém, dessa vez os valores da coluna são scores, não textos
 def midprocess_dataframe(df, text_scores):
     
     df["Relato de vida"] = text_scores
@@ -156,7 +156,7 @@ def main():
 
     df, df_text_column, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no quase no formato de entrada do modelo
 
-    text_scores = ai_process_spacy(df_text_column[:len(df)], nlp, model_text) # Transforma a colune de textos em scores para servir de entrada para o modelo
+    text_scores = ai_process_spacy(df_text_column[:len(df)], nlp, model_text) # Transforma a coluna de textos em scores para servir de entrada para o modelo
     
     df = midprocess_dataframe(df, text_scores) # Preparações finais para o dataframe estar no formato de entrada do modelo 
 
