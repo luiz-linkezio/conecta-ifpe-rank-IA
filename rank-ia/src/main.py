@@ -10,8 +10,15 @@ from utils.ai_processes import ai_process_GBM, ai_process_spacy
 from datetime import datetime
 import warnings
 
+
 warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam ignoradas
 
+# Obtém o diretório onde o script está localizado
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Muda o diretório de trabalho atual para o diretório do script
+os.chdir(script_dir)
+print(script_dir)
 
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
