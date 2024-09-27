@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from joblib import load
 import spacy
-from utils.paths import data_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
+from utils.paths import input_path, output_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
 from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
 from utils.reading import read_txt_latin1
@@ -16,14 +16,14 @@ warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam i
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
 def load_data_and_models():
-    df = pd.read_excel(data_path)
+    df = pd.read_excel(input_path)
     model = load(model_path)
     nlp = spacy.load("pt_core_news_lg")
     model_text = load(model_text_path)
     scaler = load(scaler_path)
     one_hoted_columns_list = read_txt_latin1(one_hoted_columns_list_path)
 
-    file_name = os.path.basename(data_path)
+    file_name = os.path.basename(input_path)
 
     return df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name
 
@@ -137,7 +137,7 @@ def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, co
     df = df.rename(columns={'Data de nascimento': 'Idade'})
 
     # Salva a planilha reordenada
-    df.to_excel('./data/cleaned_data/output.xlsx', index=False)
+    df.to_excel(output_path, index=False)
 
     return df
 
