@@ -22,9 +22,6 @@ async def upload(file: UploadFile = File(...)):
         if file.content_type != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             raise HTTPException(status_code=400, detail="Arquivo inválido. Envie um arquivo Excel (.xlsx).")
 
-        # Cria o diretório se não existir
-        #os.makedirs(os.path.dirname(INPUT_FILE_PATH), exist_ok=True)
-
         # Salva o arquivo recebido em um diretório local
         with open(INPUT_FILE_PATH, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
