@@ -137,7 +137,7 @@ def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, co
     df = df.rename(columns={'Data de nascimento': 'Idade'})
 
     # Salva a planilha reordenada
-    df.to_excel(f'./data/cleaned_data/cleaned_{file_name}', index=False)
+    df.to_excel('./data/cleaned_data/output.xlsx', index=False)
 
     return df
 
@@ -165,7 +165,7 @@ def main():
 
     df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column) # Transforma o dataframe quase no formato original dele, com pouca mudança
 
-    validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
+    #validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
 
 if __name__ == "__main__":
     main()

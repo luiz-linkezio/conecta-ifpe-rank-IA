@@ -1,6 +1,6 @@
 import os
 
-data_path = './data/raw_data/IFPE_10.xlsx'
+data_path = './data/raw_data/input.xlsx'
 
 model_path = './models/GBM_58c_a0.8197492163009404.joblib'
 
