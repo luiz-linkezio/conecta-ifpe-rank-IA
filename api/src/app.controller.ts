@@ -7,7 +7,7 @@ import * as path from 'path';
 
 @Controller('rank-ia')
 export class AppController {
-  @Post('process-xlsx')
+  @Post('classificar-alunos')
   @UseInterceptors(FileInterceptor('file'))
   async processXlsx(
     @UploadedFile() file: Express.Multer.File,

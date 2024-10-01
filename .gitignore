@@ -1,6 +1,7 @@
 # rank-ia
 rank-ia/data/raw_data
 rank-ia/venv
+saida_lista.txt
 
 # compiled output
 api/dist
