@@ -25,7 +25,7 @@ export class AppController {
     fs.writeFileSync(filePath, file.buffer);
 
     // Especifique o caminho completo do executável Python
-    const pythonPath = path.join(__dirname, '..', '..', 'rank-ia', 'virtualenv', 'Scripts', 'python.exe');
+    const pythonPath = path.join(__dirname, '..', '..', 'rank-ia', 'venv', 'Scripts', 'python.exe');
     const scriptPath = path.join(__dirname, '..', '..', 'rank-ia', 'src', 'main.py');
 
     // Executa o script Python passando o caminho do arquivo
