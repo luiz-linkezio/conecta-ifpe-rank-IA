@@ -18,8 +18,6 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Muda o diretório de trabalho atual para o diretório do script
 os.chdir(script_dir)
-print(script_dir)
-
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
 def load_data_and_models():
