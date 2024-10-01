@@ -3,7 +3,7 @@ saida_lista.txt
 # rank-ia
 rank-ia/venv
 rank-ia/src/utils/__pycache__
-#rank-ia/data
+rank-ia/data
 
 # compiled output
 api/dist
