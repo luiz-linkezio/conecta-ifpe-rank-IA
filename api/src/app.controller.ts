@@ -14,7 +14,9 @@ export class AppController {
     @Res() res: Response
   ) {
     const uploadsDir = path.join(__dirname, '..', 'uploads');
-    const filePath = path.join(uploadsDir, 'input.xlsx');
+
+    const inputPath = path.join(uploadsDir, 'input.xlsx');
+    const outputPath = path.join(uploadsDir, 'processed_output.xlsx');
 
     // Cria o diretório 'uploads' se não existir
     if (!fs.existsSync(uploadsDir)) {
@@ -22,14 +24,14 @@ export class AppController {
     }
 
     // Salva o arquivo no diretório 'uploads'
-    fs.writeFileSync(filePath, file.buffer);
+    fs.writeFileSync(inputPath, file.buffer);
 
     // Especifique o caminho completo do executável Python
     const pythonPath = path.join(__dirname, '..', '..', 'rank-ia', 'venv', 'Scripts', 'python.exe');
     const scriptPath = path.join(__dirname, '..', '..', 'rank-ia', 'src', 'main.py');
 
     // Executa o script Python passando o caminho do arquivo
-    exec(`"${pythonPath}" "${scriptPath}" "${filePath}"`, (error, stdout, stderr) => {
+    exec(`"${pythonPath}" "${scriptPath}" "${inputPath}" "${outputPath}"`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Erro ao executar o script Python: ${error.message}`);
         return res.status(500).json({ error: 'Erro ao processar o arquivo' });
@@ -44,7 +46,7 @@ export class AppController {
             console.error('Erro ao enviar o arquivo:', err);
           }
           // Exclui o arquivo após o envio
-          fs.unlinkSync(filePath);
+          fs.unlinkSync(inputPath);
           fs.unlinkSync(processedFilePath);
         });
       } else {

@@ -1,8 +1,8 @@
 import os
 
-input_path = '../../api/uploads/input.xlsx'
+input_path = ''
 
-output_path = '../../api/uploads/processed_output.xlsx'
+output_path = ''
 
 model_path = '../models/GBM_58c_a0.8197492163009404.joblib'
 

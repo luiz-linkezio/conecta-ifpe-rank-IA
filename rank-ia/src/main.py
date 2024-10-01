@@ -1,5 +1,6 @@
-import pandas as pd
+import sys
 import os
+import pandas as pd
 from joblib import load
 import spacy
 from utils.paths import input_path, output_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
@@ -13,14 +14,21 @@ import warnings
 
 warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam ignoradas
 
-# Obtém o diretório onde o script está localizado
+# Obtém o diretório onde o script está localizado e muda o diretório de trabalho atual para o diretório do script
 script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Muda o diretório de trabalho atual para o diretório do script
 os.chdir(script_dir)
 
+# Em casos de uso da API, recebe os paths de input e output que a API deseja, substitui os paths do código auxiliar
+def load_paths():
+    if sys.argv[1]:
+        input_path = sys.argv[1]  # Primeiro argumento após o nome do script
+    if sys.argv[2]: 
+        output_path = sys.argv[2]  # Segundo argumento após o nome do script
+
+    return input_path, output_path
+
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
-def load_data_and_models():
+def load_data_and_models(input_path=input_path):
     df = pd.read_excel(input_path)
     model = load(model_path)
     nlp = spacy.load("pt_core_news_lg")
@@ -106,7 +114,7 @@ def midprocess_dataframe(df, text_scores):
 
 
 # Transforma o dataframe quase no formato original dele, com pouca mudança
-def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column):
+def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column, output_path=output_path):
 
     # Adiciona uma nova coluna mostrando o nível de necessidade de bolsa de cada aluno
     df['Nível de necessidade'] = y_pred_proba[:, 1]
@@ -157,7 +165,9 @@ def validate_df(df, df_aluno_contemplado, file_name):
 
 def main():
     
-    df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name = load_data_and_models() # Carrega os dados, modelo e informações adicionais que serão úteis
+    input_path, output_path = load_paths() # Em casos de uso da API, recebe paths da API
+
+    df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name = load_data_and_models(input_path) # Carrega os dados, modelo e informações adicionais que serão úteis
 
     df, df_text_column, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no quase no formato de entrada do modelo
 
@@ -168,7 +178,7 @@ def main():
     df, y_pred_proba, _ = ai_process_GBM(df, model, scaler) # Normaliza os dados e realiza a predição usando o modelo
     del _
 
-    df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column) # Transforma o dataframe quase no formato original dele, com pouca mudança
+    df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column, output_path) # Transforma o dataframe quase no formato original dele, com pouca mudança
 
     #validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
 
