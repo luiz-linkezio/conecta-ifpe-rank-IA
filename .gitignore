@@ -1,6 +1,7 @@
 # rank-ia
 rank-ia/data/raw_data
 rank-ia/venv
+rank-ia/src/utils/__pycache__
 saida_lista.txt
 
 # compiled output
