@@ -1,6 +1,6 @@
 import os
 
-input_path = '../data/raw_data/input.xlsx'
+input_path = '../../api/uploads/input.xlsx'
 
 output_path = '../../api/uploads/processed_output.xlsx'
 
