@@ -3,7 +3,7 @@ import os
 from joblib import load
 import spacy
 from utils.paths import input_path, output_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
-from utils.dataframe_treatment import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
+from utils.dataframe_treatments import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
 from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
 from utils.reading import read_txt_latin1
 from utils.ai_processes import ai_process_GBM, ai_process_spacy
