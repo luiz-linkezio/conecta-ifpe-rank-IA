@@ -1,9 +1,10 @@
 import { Controller, Post, UploadedFile, UseInterceptors, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
-import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as XLSX from 'xlsx';
+import { exec } from 'child_process'; // Adicione esta linha para importar 'exec'
 
 @Controller('rank-ia')
 export class AppController {
@@ -40,15 +41,20 @@ export class AppController {
       // Verifica se o arquivo processado existe
       const processedFilePath = path.join(uploadsDir, 'processed_output.xlsx');
       if (fs.existsSync(processedFilePath)) {
-        // Retorna o arquivo processado para o cliente
-        res.download(processedFilePath, (err) => {
-          if (err) {
-            console.error('Erro ao enviar o arquivo:', err);
-          }
-          // Exclui o arquivo após o envio
-          fs.unlinkSync(inputPath);
-          fs.unlinkSync(processedFilePath);
-        });
+        // Lê o arquivo Excel processado e converte para JSON
+        const workbook = XLSX.readFile(processedFilePath);
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        // Converte a planilha para JSON
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        // Retorna o JSON como resposta
+        res.json({ data: jsonData });
+
+        // Exclui os arquivos após o processamento
+        fs.unlinkSync(inputPath);
+        fs.unlinkSync(processedFilePath);
       } else {
         res.status(500).json({ error: 'Erro ao encontrar o arquivo processado' });
       }
