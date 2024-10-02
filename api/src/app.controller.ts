@@ -8,7 +8,7 @@ import { exec } from 'child_process'; // Adicione esta linha para importar 'exec
 
 @Controller('rank-ia')
 export class AppController {
-  @Post('classificar-alunos')
+  @Post('ranquear-alunos')
   @UseInterceptors(FileInterceptor('file'))
   async processXlsx(
     @UploadedFile() file: Express.Multer.File,
