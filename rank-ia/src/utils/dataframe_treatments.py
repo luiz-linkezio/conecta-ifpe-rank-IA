@@ -84,6 +84,10 @@ def reorder_columns(df, sorted_columns, test_flag=False):
     if test_flag == True:
         df = df.drop(columns=["Aluno contemplado com bolsa?"])
 
+    if 'Nível de necessidade' in df.columns:
+        colunas = ['Nível de necessidade'] + [col for col in df.columns if col != 'Nível de necessidade']
+        df = df[colunas]
+
     return df
 
 def convert_negative_numbers_to_zero(df):

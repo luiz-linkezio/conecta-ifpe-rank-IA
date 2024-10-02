@@ -11,7 +11,6 @@ from utils.ai_processes import ai_process_GBM, ai_process_spacy
 from datetime import datetime
 import warnings
 
-
 warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam ignoradas
 
 # Obtém o diretório onde o script está localizado e muda o diretório de trabalho atual para o diretório do script
@@ -20,12 +19,17 @@ os.chdir(script_dir)
 
 # Em casos de uso da API, recebe os paths de input e output que a API deseja, substitui os paths do código auxiliar
 def load_paths():
-    if sys.argv[1]:
-        input_path = sys.argv[1]  # Primeiro argumento após o nome do script
-    if sys.argv[2]: 
-        output_path = sys.argv[2]  # Segundo argumento após o nome do script
+    try:
+        if sys.argv[1]:
+            loaded_input_path = sys.argv[1]  # Primeiro argumento após o nome do script
+        if sys.argv[2]: 
+            loaded_output_path = sys.argv[2]  # Segundo argumento após o nome do script
 
-    return input_path, output_path
+        return loaded_input_path, loaded_output_path
+    
+    except: # Caso onde não recebe paths da API (normalmente usado para testes)
+        
+        return input_path, output_path
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
 def load_data_and_models(input_path=input_path):
@@ -43,17 +47,21 @@ def load_data_and_models(input_path=input_path):
 
 # Função responsável por tratar os dados antes da predição do modelo, fazendo com que o dataframe fique no formato de entrada do modelo
 def preprocess_dataframe(df, one_hoted_columns_list):
+    """
     global resultado_flag
-
+    """
+    
     # Remove espaços em branco nos nomes das colunas
     for col in df.columns:
         df = df.rename({col:remove_initial_and_ending_spaces(col)}, axis='columns')
 
+    """
     # Verifica se o df tem o resultado da escolha da bolsa (PURAMENTE PARA TESTES!!!)
     resultado_flag = False #(PURAMENTE PARA TESTES!!!)
     if "Aluno contemplado com bolsa?" in df.columns: #(PURAMENTE PARA TESTES!!!)
         resultado_flag = True #(PURAMENTE PARA TESTES!!!)
-
+    """
+        
     # Renomeia erro de português em uma das colunas
     if "Condiçõees de moradia familiar" in df:
         df.rename(columns={"Condiçõees de moradia familiar": "Condições de moradia familiar"}, inplace=True)
@@ -141,8 +149,8 @@ def postprocess_dataframe(df, y_pred_proba,invalid_rows, df_excluded_columns, co
     df = pd.concat([df, df_text_column], axis=1)
 
     # Reordenar colunas para ficar parecido com a entrada
-    df = reorder_columns(df, columns_order, resultado_flag) # DEVE SER COLOCADO FALSE ANTES DO LANÇAMENTO!!!
-
+    df = reorder_columns(df, columns_order, False) # DEVE SER COLOCADO FALSE ANTES DO LANÇAMENTO!!!
+    
     # Renomeia de volta os valores que eram 'Sim' e 'Não'
     df.replace({True: 'Sim', False: 'Não'}, inplace=True)
 
@@ -179,8 +187,10 @@ def main():
     del _
 
     df = postprocess_dataframe(df, y_pred_proba, invalid_rows, df_excluded_columns, columns_order, file_name, df_text_column, output_path) # Transforma o dataframe quase no formato original dele, com pouca mudança
-
-    #validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
-
+    
+    """
+    validate_df(df, df_aluno_contemplado, file_name) # Versão do dataframe com as labels, para realização de testes
+    """
+    
 if __name__ == "__main__":
     main()

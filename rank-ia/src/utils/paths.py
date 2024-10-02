@@ -1,8 +1,8 @@
 import os
 
-input_path = ''
+input_path = '../data/raw_data/input.xlsx'
 
-output_path = ''
+output_path = '../data/cleaned_data/output.xlsx'
 
 model_path = '../models/GBM_58c_a0.8197492163009404.joblib'
 
