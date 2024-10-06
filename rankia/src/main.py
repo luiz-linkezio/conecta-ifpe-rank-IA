@@ -18,7 +18,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
 
 # Em casos de uso da API, recebe os paths de input e output que a API deseja, substitui os paths do código auxiliar
-def load_paths():
+def load_args():
     try:
         if sys.argv[1]:
             loaded_input_path = sys.argv[1]  # Primeiro argumento após o nome do script
@@ -173,7 +173,7 @@ def validate_df(df, df_aluno_contemplado, file_name):
 
 def main():
     
-    input_path, output_path = load_paths() # Em casos de uso da API, recebe paths da API
+    input_path, output_path = load_args() # Em casos de uso da API, recebe paths da API
 
     df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name = load_data_and_models(input_path) # Carrega os dados, modelo e informações adicionais que serão úteis
 
