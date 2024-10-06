@@ -4,6 +4,7 @@ import { Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as XLSX from 'xlsx';
+import * as os from 'os';
 import { exec } from 'child_process'; // Adicione esta linha para importar 'exec'
 
 @Controller('rank-ia')
@@ -27,8 +28,17 @@ export class AppController {
     // Salva o arquivo no diretório 'uploads'
     fs.writeFileSync(inputPath, file.buffer);
 
+    let pythonPath: string;
+
     // Especifique o caminho completo do executável Python
-    const pythonPath = path.join(__dirname, '..', '..', 'rank-ia', 'venv', 'Scripts', 'python.exe');
+    if (os.platform() === 'win32') {
+      // Windows
+      pythonPath = "python";
+    } else {
+      // Linux ou MacOS
+      pythonPath = "python3";
+    }
+
     const scriptPath = path.join(__dirname, '..', '..', 'rank-ia', 'src', 'main.py');
 
     // Executa o script Python passando o caminho do arquivo
@@ -53,10 +63,23 @@ export class AppController {
         res.json({ data: jsonData });
 
         // Exclui os arquivos após o processamento
-        fs.unlinkSync(inputPath);
-        fs.unlinkSync(processedFilePath);
+        try {
+          if (fs.existsSync(inputPath)) {
+            fs.unlinkSync(inputPath);
+          }
+        } catch (error) {
+          console.error('Erro ao encontrar o arquivo de entrada para excluir:', error);
+        }
+
+        try {
+          if (fs.existsSync(processedFilePath)) {
+            fs.unlinkSync(processedFilePath);
+          }
+        } catch (error) {
+          console.error('Erro ao encontrar o arquivo processado para excluir:', error);
+        }
       } else {
-        res.status(500).json({ error: 'Erro ao encontrar o arquivo processado' });
+        res.status(500).json({ error: 'Arquivo processado não encontrado.' });
       }
     });
   }
