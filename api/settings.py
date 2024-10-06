@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-7l%x4*c-(nnn+ybpaojpg3#g6f!a(rlod5ttf%3%6v$+o)k6=f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['conecta-ifpe-rank-ia-production.up.railway.app', 'localhost', '127.0.0.1']
 
 
 # Application definition
