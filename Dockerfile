@@ -18,4 +18,5 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar sua aplicação
-CMD ["python", "manage.py", "runserver", "0.0.0.0:3000"]
+CMD ["gunicorn", "nome_do_projeto.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+
