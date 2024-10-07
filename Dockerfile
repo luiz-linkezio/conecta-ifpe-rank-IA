@@ -19,5 +19,4 @@ EXPOSE 3000
 
 # Comando para iniciar sua aplicação
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:3000"]
-CMD ["gunicorn", "api.wsgi:application", "--bind", "0.0.0.0:3000"]
-
+CMD ["gunicorn", "--timeout", "9999", "api.wsgi:application", "--bind", "0.0.0.0:3000"]

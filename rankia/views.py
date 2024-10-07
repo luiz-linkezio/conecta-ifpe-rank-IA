@@ -4,7 +4,11 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 import pandas as pd
 import os
-import subprocess
+from .src.main import main
+
+# Obtém o diretório onde o script está localizado e muda o diretório de trabalho atual para o diretório do script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(script_dir)
 
 class UploadFileView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -28,12 +32,8 @@ class UploadFileView(APIView):
         temp_output_path = os.path.join(current_directory, 'data', 'temp', 'output.xlsx')
         
         try:
-            # Chama o script main.py com subprocess
-            """
-            venv_python_path = os.path.join(current_directory, '..', 'venv', 'Scripts', 'python.exe')
-            subprocess.run([venv_python_path, r'src\main.py', temp_input_path, temp_output_path], check=True)
-            """
-            subprocess.run(['python3', r'src/main.py', temp_input_path, temp_output_path], check=True)
+            #subprocess.run(['python3', r'src/main.py', temp_input_path, temp_output_path], check=True)
+            main(temp_input_path, temp_output_path)
 
             # Lê o arquivo de saída processado
             output_df = pd.read_excel(temp_output_path)
@@ -50,7 +50,7 @@ class UploadFileView(APIView):
 
             # Retorna um JSON com a resposta
             return JsonResponse({'message': 'File processed successfully', 'data': response_data}, status=status.HTTP_200_OK)
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             return JsonResponse({'error': f'Error processing file: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

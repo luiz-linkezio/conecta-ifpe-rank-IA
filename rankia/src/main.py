@@ -1,13 +1,12 @@
-import sys
 import os
 import pandas as pd
 from joblib import load
 import spacy
-from utils.paths import input_path, output_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
-from utils.dataframe_treatments import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
-from utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
-from utils.reading import read_txt_latin1
-from utils.ai_processes import ai_process_GBM, ai_process_spacy
+from .utils.paths import input_path, output_path, model_path, scaler_path, one_hoted_columns_list_path, model_text_path
+from .utils.dataframe_treatments import remove_initial_and_ending_spaces, convert_columns_to_float64, revert_one_hot, filling_missing_columns, reorder_columns, convert_negative_numbers_to_zero, get_invalid_rows, drop_common_rows_from_left_df
+from .utils.constants import columns_white_list, columns_to_float64, one_hot_encoding_columns
+from .utils.reading import read_txt_latin1
+from .utils.ai_processes import ai_process_GBM, ai_process_spacy
 from datetime import datetime
 import warnings
 
@@ -16,20 +15,6 @@ warnings.filterwarnings('ignore') # Fazendo com que as saídas de alerta sejam i
 # Obtém o diretório onde o script está localizado e muda o diretório de trabalho atual para o diretório do script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
-
-# Em casos de uso da API, recebe os paths de input e output que a API deseja, substitui os paths do código auxiliar
-def load_args():
-    try:
-        if sys.argv[1]:
-            loaded_input_path = sys.argv[1]  # Primeiro argumento após o nome do script
-        if sys.argv[2]: 
-            loaded_output_path = sys.argv[2]  # Segundo argumento após o nome do script
-
-        return loaded_input_path, loaded_output_path
-    
-    except: # Caso onde não recebe paths da API (normalmente usado para testes)
-        
-        return input_path, output_path
 
 # Carrega o arquivo a ser analisado, o modelo que irá analisar, o scaler de normalização e a lista de colunas após o one-hot encoding
 def load_data_and_models(input_path=input_path):
@@ -171,10 +156,8 @@ def validate_df(df, df_aluno_contemplado, file_name):
     df_validation.to_excel(f'./data/cleaned_data/validation_cleaned_{file_name}', index=False)
 
 
-def main():
+def main(input_path, output_path):
     
-    input_path, output_path = load_args() # Em casos de uso da API, recebe paths da API
-
     df, model, scaler, nlp, model_text, one_hoted_columns_list, file_name = load_data_and_models(input_path) # Carrega os dados, modelo e informações adicionais que serão úteis
 
     df, df_text_column, invalid_rows, df_excluded_columns, columns_order, df_aluno_contemplado = preprocess_dataframe(df, one_hoted_columns_list) # Transforma o dataframe no quase no formato de entrada do modelo
