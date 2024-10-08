@@ -1,0 +1,7 @@
+services:
+  conecta-ifpe-rank-ia:  # Nome do serviço
+    build: .  # Indica que o Dockerfile está na raiz
+    ports:
+      - "3000:3000"  # Mapeia a porta 3000 do contêiner para a porta 3000 do host
+    volumes:
+      - .:/app  # Monta o diretório atual no contêiner, se necessário
