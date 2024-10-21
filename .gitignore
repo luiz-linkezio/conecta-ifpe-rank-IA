@@ -1,0 +1,10 @@
+venv
+
+# rankia
+rankia/src/utils/__pycache__
+rankia/data/raw/*
+!rankia/data/raw/.gitkeep
+rankia/data/cleaned/*
+!rankia/data/cleaned/.gitkeep
+rankia/data/temp/*
+!rankia/data/temp/.gitkeep
